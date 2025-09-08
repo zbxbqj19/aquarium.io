@@ -6,7 +6,7 @@
 <style>
   body {
     margin: 0;
-    background: #0b1320;
+    background: radial-gradient(circle at center, #0f1a33, #050810);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -15,40 +15,52 @@
     color: white;
   }
   svg { width: 100%; height: 100%; }
+
+  /* 아두이노 보드 */
   .board {
     fill: #1e2a40;
     stroke: #4fc3f7;
     stroke-width: 3;
-    rx: 15; ry: 15;
+    rx: 20; ry: 20;
+    filter: drop-shadow(0 0 15px #4fc3f7);
   }
-  .pin-label { font-size: 10px; fill: #7fcfff; }
-  .node {
+
+  .pin-label { font-size: 11px; fill: #7fcfff; }
+
+  /* 노드 */
+  .node circle {
     fill: #111a2b;
     stroke: #4fc3f7;
     stroke-width: 3;
-    r: 40;
+    r: 50;
     cursor: pointer;
     transition: 0.3s;
+    filter: drop-shadow(0 0 8px #4fc3f7);
   }
+
   .label {
     font-size: 12px;
     fill: white;
     text-anchor: middle;
     dominant-baseline: middle;
   }
+
   line {
     stroke: #4fc3f7;
     stroke-width: 2;
     stroke-dasharray: 4;
+    filter: drop-shadow(0 0 6px #4fc3f7);
   }
+
   /* 애니메이션 */
-  .heater.active { fill: #ff6b6b; animation: glow 1s infinite alternate; }
-  .led.active { fill: #ffd54f; animation: blink 1s infinite alternate; }
-  .oxygenator.active { fill: #4fc3f7; animation: bubble 1.2s infinite; }
-  .alarm.active { fill: #ffeb3b; animation: ring 0.5s infinite alternate; }
-  @keyframes glow { from{filter:drop-shadow(0 0 5px red);} to{filter:drop-shadow(0 0 20px red);} }
-  @keyframes blink { from{opacity:0.6;} to{opacity:1;} }
-  @keyframes bubble { from{r:40;} to{r:42;} }
+  .heater.active circle { fill: #ff4d4d; animation: glow 1s infinite alternate; }
+  .led.active circle { fill: #ffd54f; animation: blink 1s infinite alternate; }
+  .oxygenator.active circle { fill: #4fc3f7; animation: bubble 1.2s infinite; }
+  .alarm.active circle { fill: #ffeb3b; animation: ring 0.5s infinite alternate; }
+
+  @keyframes glow { from{filter:drop-shadow(0 0 6px red);} to{filter:drop-shadow(0 0 25px red);} }
+  @keyframes blink { from{opacity:0.5;} to{opacity:1;} }
+  @keyframes bubble { from{r:50;} to{r:54;} }
   @keyframes ring { from{transform:rotate(-5deg);} to{transform:rotate(5deg);} }
 </style>
 </head>
@@ -64,42 +76,87 @@
   <text x="390" y="320" class="pin-label">D5</text>
   <text x="390" y="380" class="pin-label">D7</text>
 
-  <!-- 노드들 -->
-  <circle id="tempSensor" class="node" cx="200" cy="200"/>
-  <text x="200" y="200" class="label">🌡️ 온도 센서</text>
+  <!-- 아이콘 있는 노드 -->
+  <g id="tempSensor" class="node" transform="translate(200,200)">
+    <circle/>
+    <!-- thermometer icon -->
+    <path d="M0,-20 a10,10 0 0 1 0,40 a10,10 0 0 1 0,-40 v-20 a10,10 0 0 1 0,-20 a10,10 0 0 1 0,20z" 
+          fill="#4fc3f7"/>
+    <text y="70" class="label">온도 센서</text>
+  </g>
 
-  <circle id="heater" class="node heater" cx="800" cy="200"/>
-  <text x="800" y="200" class="label">🔥 히터</text>
+  <g id="heater" class="node heater" transform="translate(800,200)">
+    <circle/>
+    <!-- flame icon -->
+    <path d="M0,-25 C15,-10 10,0 15,10 C20,25 -20,25 -15,10 C-10,0 -15,-10 0,-25Z" fill="#ff7043"/>
+    <text y="70" class="label">히터</text>
+  </g>
 
-  <circle id="lightSensor" class="node" cx="200" cy="300"/>
-  <text x="200" y="300" class="label">☀️ 조도 센서</text>
+  <g id="lightSensor" class="node" transform="translate(200,300)">
+    <circle/>
+    <!-- sun icon -->
+    <circle r="15" fill="#ffd54f"/>
+    <g stroke="#ffd54f" stroke-width="3">
+      <line x1="0" y1="-25" x2="0" y2="-40"/>
+      <line x1="0" y1="25" x2="0" y2="40"/>
+      <line x1="-25" y1="0" x2="-40" y2="0"/>
+      <line x1="25" y1="0" x2="40" y2="0"/>
+    </g>
+    <text y="70" class="label">조도 센서</text>
+  </g>
 
-  <circle id="ledLight" class="node led" cx="800" cy="300"/>
-  <text x="800" y="300" class="label">💡 LED</text>
+  <g id="ledLight" class="node led" transform="translate(800,300)">
+    <circle/>
+    <!-- LED bulb icon -->
+    <circle r="14" fill="#fff176" stroke="#fbc02d" stroke-width="3"/>
+    <rect x="-10" y="15" width="20" height="12" rx="3" fill="#fbc02d"/>
+    <text y="70" class="label">LED</text>
+  </g>
 
-  <circle id="o2Sensor" class="node" cx="200" cy="400"/>
-  <text x="200" y="400" class="label">🫧 산소 센서</text>
+  <g id="o2Sensor" class="node" transform="translate(200,400)">
+    <circle/>
+    <!-- O2 molecule icon -->
+    <circle cx="-15" r="12" fill="#81d4fa"/>
+    <circle cx="15" r="12" fill="#4fc3f7"/>
+    <text y="70" class="label">산소 센서</text>
+  </g>
 
-  <circle id="oxygenator" class="node oxygenator" cx="800" cy="400"/>
-  <text x="800" y="400" class="label">🌬️ 산소기</text>
+  <g id="oxygenator" class="node oxygenator" transform="translate(800,400)">
+    <circle/>
+    <!-- bubbles icon -->
+    <circle cx="-10" cy="-10" r="6" fill="#4fc3f7"/>
+    <circle cx="10" cy="5" r="8" fill="#81d4fa"/>
+    <circle cx="0" cy="20" r="5" fill="#29b6f6"/>
+    <text y="70" class="label">산소기</text>
+  </g>
 
-  <circle id="phSensor" class="node" cx="500" cy="500"/>
-  <text x="500" y="500" class="label">💧 pH 센서</text>
+  <g id="phSensor" class="node" transform="translate(500,500)">
+    <circle/>
+    <!-- pH test tube icon -->
+    <rect x="-10" y="-25" width="20" height="40" rx="5" fill="#64b5f6"/>
+    <rect x="-10" y="15" width="20" height="15" rx="3" fill="#2196f3"/>
+    <text y="70" class="label">pH 센서</text>
+  </g>
 
-  <circle id="alarm" class="node alarm" cx="500" cy="70"/>
-  <text x="500" y="70" class="label">🔔 알림</text>
+  <g id="alarm" class="node alarm" transform="translate(500,70)">
+    <circle/>
+    <!-- bell icon -->
+    <path d="M-15,0 a15,15 0 0 0 30,0 v-20 a15,15 0 0 0 -30,0z" fill="#ffeb3b"/>
+    <circle cy="15" r="5" fill="#fdd835"/>
+    <text y="70" class="label">알림</text>
+  </g>
 
   <!-- 연결선 -->
-  <line x1="240" y1="200" x2="400" y2="200"/>
-  <line x1="600" y1="200" x2="760" y2="200"/>
+  <line x1="250" y1="200" x2="400" y2="200"/>
+  <line x1="600" y1="200" x2="750" y2="200"/>
 
-  <line x1="240" y1="300" x2="400" y2="260"/>
-  <line x1="600" y1="260" x2="760" y2="300"/>
+  <line x1="250" y1="300" x2="400" y2="260"/>
+  <line x1="600" y1="260" x2="750" y2="300"/>
 
-  <line x1="240" y1="400" x2="400" y2="320"/>
-  <line x1="600" y1="320" x2="760" y2="400"/>
+  <line x1="250" y1="400" x2="400" y2="320"/>
+  <line x1="600" y1="320" x2="750" y2="400"/>
 
-  <line x1="500" y1="480" x2="500" y2="450"/>
+  <line x1="500" y1="450" x2="500" y2="480"/>
   <line x1="500" y1="150" x2="500" y2="100"/>
 </svg>
 
