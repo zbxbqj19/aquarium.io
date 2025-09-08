@@ -1,205 +1,94 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>스마트 아쿠아리움 시뮬레이션</title>
-  <meta name="description" content="온도·조도·산소·pH를 통합 제어하는 3D 스마트 아쿠아리움 시뮬레이션" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>스마트 아쿠아리움 회로 시뮬레이션</title>
   <style>
-    /* ===== CSS는 그대로 (생략, 기존 코드 복붙) ===== */
+    body {
+      margin: 0;
+      font-family: Pretendard, sans-serif;
+      background: #0b1320;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    svg {
+      width: 90%;
+      height: 90%;
+    }
+    .node {
+      fill: #1e2a40;
+      stroke: #4fc3f7;
+      stroke-width: 3;
+      r: 40;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .node.active {
+      fill: #4fc3f7;
+      stroke: #fff;
+    }
+    .label {
+      font-size: 14px;
+      fill: #fff;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      pointer-events: none;
+    }
+    line {
+      stroke: #4fc3f7;
+      stroke-width: 2;
+    }
   </style>
 </head>
 <body>
-  <!-- ===== HTML 구조도 그대로 (생략, 기존 코드 복붙) ===== -->
+  <svg viewBox="0 0 800 600">
+    <!-- 온도 & 히터 -->
+    <circle id="tempSensor" class="node" cx="150" cy="150" />
+    <text x="150" y="150" class="label">온도 센서</text>
 
-  <!-- Three.js (module) -->
-  <script type="module">
-    import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
-    import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+    <circle id="heater" class="node" cx="350" cy="150" />
+    <text x="350" y="150" class="label">히터</text>
 
-    // ======= State =======
-    const state = {
-      running: true,
-      auto: true,
-      time: 0,
-      cloud: 0.2,
-      sunLux: 6000,
-      led: 0.5,
-      temp: 25.0,
-      targetTemp: 26.0,
-      ambient: 22.0,
-      heaterOn: false,
-      o2: 0.75,
-      o2Target: 0.8,
-      oxygenator: false,
-      ph: 7.2,
-      phTarget: 7.2,
-      lastWaterChange: Date.now(),
-      waterIntervalDays: 28,
-    };
+    <line x1="190" y1="150" x2="310" y2="150" />
 
-    // ======= UI Elements =======
-    const $ = (sel)=>document.querySelector(sel);
-    const threeCanvas = $('#three');
-    const targetTemp = $('#targetTemp');
-    const targetTempLabel = $('#targetTempLabel');
-    const heaterState = $('#heaterState');
-    const cloud = $('#cloud');
-    const cloudLabel = $('#cloudLabel');
-    const led = $('#led');
-    const ledLabel = $('#ledLabel');
-    const o2Target = $('#o2Target');
-    const o2TargetLabel = $('#o2TargetLabel');
-    const oxygenatorChip = $('#oxygenatorChip');
-    const phTarget = $('#phTarget');
-    const phTargetLabel = $('#phTargetLabel');
-    const waterInterval = $('#waterInterval');
-    const tempStat = $('#tempStat');
-    const tempHint = $('#tempHint');
-    const luxStat = $('#luxStat');
-    const o2Stat = $('#o2Stat');
-    const phStat = $('#phStat');
-    const waterDue = $('#waterDue');
-    const btnReset = $('#btnReset');
-    const btnSave = $('#btnSave');
-    const toast = $('#toast');
+    <!-- 조도 & LED -->
+    <circle id="lightSensor" class="node" cx="150" cy="300" />
+    <text x="150" y="300" class="label">조도 센서</text>
 
-    // ======= Persistence =======
-    const STORAGE_KEY = 'smart-aqua-config-v1';
-    function saveConfig(){
-      const conf = {
-        targetTemp: state.targetTemp,
-        cloud: state.cloud,
-        led: state.led,
-        o2Target: state.o2Target,
-        phTarget: state.phTarget,
-        waterIntervalDays: state.waterIntervalDays,
-        lastWaterChange: state.lastWaterChange,
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(conf));
-      showToast('설정을 저장했어요.');
-    }
-    function loadConfig(){
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if(!raw) return;
-      try {
-        const conf = JSON.parse(raw);
-        Object.assign(state, conf);
-        targetTemp.value = state.targetTemp;
-        targetTempLabel.textContent = state.targetTemp.toFixed(1);
-        cloud.value = Math.round(state.cloud*100); cloudLabel.textContent = Math.round(state.cloud*100)+'%';
-        led.value = Math.round(state.led*100); ledLabel.textContent = Math.round(state.led*100)+'%';
-        o2Target.value = Math.round(state.o2Target*100); o2TargetLabel.textContent = Math.round(state.o2Target*100)+'%';
-        phTarget.value = state.phTarget.toFixed(1); phTargetLabel.textContent = state.phTarget.toFixed(1);
-        waterInterval.value = String(state.waterIntervalDays);
-      } catch(e){ console.warn(e); }
-    }
+    <circle id="ledLight" class="node" cx="350" cy="300" />
+    <text x="350" y="300" class="label">LED</text>
 
-    // ======= UI Events =======
-    $('#runToggle').addEventListener('change', e=> state.running = e.target.checked);
-    $('#autoToggle').addEventListener('change', e=> state.auto = e.target.checked);
-    targetTemp.addEventListener('input', e=>{ state.targetTemp = parseFloat(e.target.value); targetTempLabel.textContent = state.targetTemp.toFixed(1); });
-    cloud.addEventListener('input', e=>{ state.cloud = parseInt(e.target.value)/100; cloudLabel.textContent = e.target.value+'%'; });
-    led.addEventListener('input', e=>{ state.led = parseInt(e.target.value)/100; ledLabel.textContent = e.target.value+'%'; });
-    o2Target.addEventListener('input', e=>{ state.o2Target = parseInt(e.target.value)/100; o2TargetLabel.textContent = Math.round(state.o2Target*100)+'%'; });
-    phTarget.addEventListener('input', e=>{ state.phTarget = parseFloat(e.target.value); phTargetLabel.textContent = state.phTarget.toFixed(1); });
-    waterInterval.addEventListener('change', e=>{ state.waterIntervalDays = parseInt(e.target.value); updateWaterDueLabel(); });
-    btnReset.addEventListener('click', ()=>{ localStorage.removeItem(STORAGE_KEY); location.reload(); });
-    btnSave.addEventListener('click', saveConfig);
+    <line x1="190" y1="300" x2="310" y2="300" />
 
-    function showToast(msg){
-      toast.textContent = msg; toast.style.display = 'block';
-      setTimeout(()=> toast.style.display = 'none', 2500);
-    }
+    <!-- 산소 & 공급기 -->
+    <circle id="o2Sensor" class="node" cx="150" cy="450" />
+    <text x="150" y="450" class="label">산소 센서</text>
 
-    // ======= 3D Scene =======
-    const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x0b1020, 0.035);
+    <circle id="oxygenator" class="node" cx="350" cy="450" />
+    <text x="350" y="450" class="label">산소기</text>
 
-    const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
-    camera.position.set(2.6, 1.8, 3.0);
+    <line x1="190" y1="450" x2="310" y2="450" />
 
-    const renderer = new THREE.WebGLRenderer({ canvas: threeCanvas, antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // 최적화
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; controls.dampingFactor = 0.05; controls.target.set(0,0.7,0);
+    <!-- pH & 알림 -->
+    <circle id="phSensor" class="node" cx="550" cy="300" />
+    <text x="550" y="300" class="label">pH 센서</text>
 
-    // Lights
-    const ambient = new THREE.AmbientLight(0xffffff, 0.35);
-    scene.add(ambient);
-    const sun = new THREE.DirectionalLight(0xfff6e0, 1.2);
-    sun.position.set(-5, 6, 3);
-    scene.add(sun);
-    const ledLight = new THREE.PointLight(0x8ab4ff, 1.0, 10);
-    ledLight.position.set(0, 1.8, 0);
-    scene.add(ledLight);
+    <circle id="alarm" class="node" cx="750" cy="300" />
+    <text x="750" y="300" class="label">알림</text>
 
-    // Tank & water (생략, 기존 코드 그대로)
-    // Bubbles, Fish (생략, 기존 코드 그대로)
+    <line x1="590" y1="300" x2="710" y2="300" />
+  </svg>
 
-    // Resize
-    function onResize(){
-      const rect = threeCanvas.getBoundingClientRect();
-      if(rect.width && rect.height){
-        renderer.setSize(rect.width, rect.height, false);
-        camera.aspect = rect.width/rect.height; camera.updateProjectionMatrix();
-      }
-    }
-    window.addEventListener('resize', onResize);
-    setTimeout(onResize, 0);
-
-    // ======= Simulation Logic =======
-    function clamp(x, a, b){ return Math.max(a, Math.min(b, x)); }
-    function updateEnvironment(dt){ /* (생략, 기존 코드 그대로) */ }
-    function updateWater(dt){ /* (생략, 기존 코드 그대로) */ }
-
-    function updateWaterDueLabel(){
-      const daysSince = Math.floor((Date.now() - state.lastWaterChange)/(1000*60*60*24));
-      const remain = Math.max(0, state.waterIntervalDays - daysSince);
-      waterDue.textContent = `환수 D-${remain} (주기 ${state.waterIntervalDays}일)`;
-      if(remain === 0){ showToast('환수 예정일이에요! 물갈이를 해주세요.'); }
-    }
-    $('#phSec').addEventListener('dblclick', ()=>{ state.lastWaterChange = Date.now(); state.ph = state.phTarget; updateWaterDueLabel(); showToast('환수를 수행했어요. pH가 안정되었습니다.'); });
-
-    // ======= Loop with Optimization =======
-    let last = performance.now();
-    let lastDOMUpdate = 0;
-    let toastCooldown = 0;
-
-    function tick(now){
-      const dt = Math.min(0.1, (now - last)/1000);
-      last = now;
-      if(!state.running){ requestAnimationFrame(tick); return; }
-
-      state.time += dt;
-      updateEnvironment(dt);
-      updateWater(dt);
-      controls.update();
-      renderer.render(scene, camera);
-
-      // DOM 업데이트: 0.5초마다
-      if(now - lastDOMUpdate > 500){
-        lastDOMUpdate = now;
-        updateWaterDueLabel();
-      }
-
-      // pH 경고: 5초에 한 번만
-      if(Math.abs(state.ph - state.phTarget) > 0.5 && now - toastCooldown > 5000){
-        showToast('pH 편차가 큽니다. 환수 또는 조치를 권장합니다.');
-        toastCooldown = now;
-      }
-
-      requestAnimationFrame(tick);
-    }
-
-    // Init
-    loadConfig();
-    onResize();
-    requestAnimationFrame(tick);
-
+  <script>
+    // 클릭 시 활성화 토글
+    document.querySelectorAll(".node").forEach(node => {
+      node.addEventListener("click", () => {
+        node.classList.toggle("active");
+      });
+    });
   </script>
 </body>
 </html>
