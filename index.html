@@ -61,8 +61,29 @@
     .btn:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.26); }
     .btn.primary { border-color: rgba(56,189,248,0.45); background: linear-gradient(180deg, rgba(56,189,248,0.18), rgba(56,189,248,0.08)); }
 
-    main { position: absolute; inset: 80px 16px 16px 16px; display: grid; grid-template-columns: 380px 1fr; gap: 16px; }
-    @media (max-width: 1024px) { main { grid-template-columns: 1fr; grid-template-rows: 420px 1fr; } }
+    /* --- LAYOUT: main 영역을 그리드로 변경 --- */
+    main {
+      position: absolute;
+      inset: 80px 16px 16px 16px; /* header 높이 고려 */
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      grid-template-rows: 1fr 140px; /* 상단 메인, 하단 상태창 */
+      grid-template-areas:
+        "controls viewport"
+        "status   status";
+      gap: 16px;
+      min-height: 0; /* allow children to shrink for overflow */
+    }
+    @media (max-width: 1024px) {
+      main {
+        grid-template-columns: 1fr;
+        grid-template-rows: 420px 1fr 120px;
+        grid-template-areas:
+          "controls"
+          "viewport"
+          "status";
+      }
+    }
 
     .panel {
       border: 1px solid var(--stroke); border-radius: var(--radius);
@@ -71,7 +92,13 @@
     }
 
     /* Controls */
-    #controls { padding: 16px; display: grid; gap: 14px; overflow: auto; }
+    #controls {
+      grid-area: controls;
+      padding: 16px;
+      display: grid; gap: 14px;
+      overflow: auto;
+      min-height: 0; /* important for proper scrolling inside grid */
+    }
     .section { border: 1px solid var(--stroke); border-radius: 16px; padding: 14px; background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); }
     .section h3 { margin: 0 0 8px; font-size: 15px; font-weight: 700; color: white; }
     .row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; margin: 10px 0; }
@@ -86,13 +113,33 @@
     .chip.bad .dot { background: var(--bad); }
 
     /* Canvas area */
-    #viewport { position: relative; overflow: hidden; }
+    #viewport {
+      grid-area: viewport;
+      position: relative;
+      overflow: hidden;
+      min-height: 0; /* allow canvas to size correctly inside grid */
+      display: flex;
+      align-items: stretch;
+      justify-content: stretch;
+    }
+    /* ensure canvas fills parent */
     #three { width: 100%; height: 100%; display: block; border-radius: var(--radius); }
 
-    /* Status footer */
-    #status { position: absolute; left: 16px; right: 16px; bottom: 16px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-    @media (max-width: 1024px) { #status { grid-template-columns: repeat(2, 1fr); } }
-    .stat { padding: 10px 12px; border: 1px solid var(--stroke); background: var(--card-strong); border-radius: 14px; display: grid; gap: 6px; }
+    /* Status footer (now placed in grid, not absolute) */
+    #status {
+      grid-area: status;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      padding: 12px;
+      /* keep panel look */
+      border-radius: 14px;
+      background: var(--card-strong);
+      border: 1px solid var(--stroke);
+      min-height: 0;
+    }
+    @media (max-width: 1024px) { #status { flex-wrap: wrap; } }
+    .stat { flex: 1 1 200px; padding: 10px 12px; border: 1px solid var(--stroke); background: rgba(255,255,255,0.04); border-radius: 14px; display: grid; gap: 6px; min-width: 140px; }
     .stat small { color: var(--muted); font-size: 11px; }
     .stat .value { font-size: 18px; font-weight: 700; }
 
@@ -318,7 +365,10 @@
     const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
     camera.position.set(2.6, 1.8, 3.0);
 
-    const renderer = new THREE.WebGLRenderer({ canvas: threeCanvas, antialias: true, alpha: true });
+    // Note: set alpha:false and setClearColor so background color is visible reliably
+    const renderer = new THREE.WebGLRenderer({ canvas: threeCanvas, antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setClearColor(0x0b1020); // match UI background
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true; controls.dampingFactor = 0.05; controls.target.set(0,0.7,0);
 
@@ -386,14 +436,21 @@
     }
     const fish = createFish(); scene.add(fish);
 
-    // Resize
+    // Resize (robust)
     function onResize(){
-      const rect = threeCanvas.getBoundingClientRect();
-      renderer.setSize(rect.width, rect.height, false);
-      camera.aspect = rect.width/rect.height; camera.updateProjectionMatrix();
+      // ensure parent (#viewport) has computed size
+      const parent = threeCanvas.parentElement;
+      const rect = parent.getBoundingClientRect();
+      const w = Math.max(1, Math.floor(rect.width));
+      const h = Math.max(1, Math.floor(rect.height));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
     }
     window.addEventListener('resize', onResize);
-    setTimeout(onResize, 0);
+    // call a bit later to allow layout to settle
+    setTimeout(onResize, 50);
 
     // ======= Simulation Logic =======
     function clamp(x, a, b){ return Math.max(a, Math.min(b, x)); }
@@ -494,20 +551,25 @@
     let last = performance.now();
     function tick(now){
       const dt = Math.min(0.1, (now - last)/1000); // cap dt for stability
-      last = now; if(!state.running){ requestAnimationFrame(tick); return; }
-      state.time += dt;
-      updateEnvironment(dt);
-      updateWater(dt);
-      controls.update();
-      renderer.render(scene, camera);
-      updateWaterDueLabel();
+      last = now;
+      if(state.running){
+        state.time += dt;
+        updateEnvironment(dt);
+        updateWater(dt);
+        controls.update();
+        renderer.render(scene, camera);
+        updateWaterDueLabel();
+      } else {
+        // still render so UI redraws (optional)
+        renderer.render(scene, camera);
+      }
       requestAnimationFrame(tick);
     }
 
     // Init
     loadConfig();
-    onResize();
-    requestAnimationFrame(tick);
+    // initial resize after DOM/layout ready
+    setTimeout(()=>{ onResize(); requestAnimationFrame(tick); }, 80);
 
   </script>
 </body>
