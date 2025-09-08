@@ -1,143 +1,112 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>아두이노 기반 스마트 아쿠아리움 시뮬레이션</title>
-  <style>
-    body {
-      margin: 0;
-      background: #0e1525;
-      font-family: Pretendard, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      color: white;
-    }
-    svg {
-      width: 95%;
-      height: 95%;
-    }
-    /* Arduino 보드 */
-    .arduino {
-      fill: #1e2a40;
-      stroke: #4fc3f7;
-      stroke-width: 3;
-      rx: 20;
-      ry: 20;
-    }
-    .pin {
-      fill: #263859;
-      stroke: #7fcfff;
-      stroke-width: 2;
-      rx: 5;
-      ry: 5;
-    }
-    .pin-label {
-      font-size: 10px;
-      fill: #7fcfff;
-    }
-    /* 노드(센서/장치) */
-    .node {
-      fill: url(#gradBlue);
-      stroke: #fff;
-      stroke-width: 3;
-      r: 35;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    .node.active {
-      fill: url(#gradRed);
-      stroke: #ff6b6b;
-    }
-    .label {
-      font-size: 12px;
-      fill: white;
-      text-anchor: middle;
-      dominant-baseline: middle;
-    }
-    line {
-      stroke: #4fc3f7;
-      stroke-width: 2;
-    }
-    /* 그라디언트 */
-    defs linearGradient stop { transition: 0.3s; }
-  </style>
+<meta charset="UTF-8">
+<title>아두이노 스마트 아쿠아리움 회로</title>
+<style>
+  body {
+    margin: 0;
+    background: #0b1320;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: Pretendard, sans-serif;
+    color: white;
+  }
+  svg { width: 100%; height: 100%; }
+  .board {
+    fill: #1e2a40;
+    stroke: #4fc3f7;
+    stroke-width: 3;
+    rx: 15; ry: 15;
+  }
+  .pin-label { font-size: 10px; fill: #7fcfff; }
+  .node {
+    fill: #111a2b;
+    stroke: #4fc3f7;
+    stroke-width: 3;
+    r: 40;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .label {
+    font-size: 12px;
+    fill: white;
+    text-anchor: middle;
+    dominant-baseline: middle;
+  }
+  line {
+    stroke: #4fc3f7;
+    stroke-width: 2;
+    stroke-dasharray: 4;
+  }
+  /* 애니메이션 */
+  .heater.active { fill: #ff6b6b; animation: glow 1s infinite alternate; }
+  .led.active { fill: #ffd54f; animation: blink 1s infinite alternate; }
+  .oxygenator.active { fill: #4fc3f7; animation: bubble 1.2s infinite; }
+  .alarm.active { fill: #ffeb3b; animation: ring 0.5s infinite alternate; }
+  @keyframes glow { from{filter:drop-shadow(0 0 5px red);} to{filter:drop-shadow(0 0 20px red);} }
+  @keyframes blink { from{opacity:0.6;} to{opacity:1;} }
+  @keyframes bubble { from{r:40;} to{r:42;} }
+  @keyframes ring { from{transform:rotate(-5deg);} to{transform:rotate(5deg);} }
+</style>
 </head>
 <body>
 <svg viewBox="0 0 1000 600">
-  <!-- 그라디언트 -->
-  <defs>
-    <linearGradient id="gradBlue" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#4fc3f7;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#1b9ce2;stop-opacity:1" />
-    </linearGradient>
-    <linearGradient id="gradRed" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#c44536;stop-opacity:1" />
-    </linearGradient>
-  </defs>
-
   <!-- 아두이노 보드 -->
-  <rect x="400" y="150" width="200" height="300" class="arduino" />
-  <text x="500" y="180" fill="white" font-size="16" text-anchor="middle">Arduino UNO</text>
+  <rect x="400" y="150" width="200" height="300" class="board"/>
+  <text x="500" y="170" fill="white" font-size="16" text-anchor="middle">Arduino UNO</text>
 
   <!-- 핀 라벨 -->
-  <rect x="430" y="200" width="20" height="10" class="pin"></rect>
-  <text x="440" y="208" class="pin-label">A0</text>
+  <text x="390" y="200" class="pin-label">A0</text>
+  <text x="390" y="260" class="pin-label">D3</text>
+  <text x="390" y="320" class="pin-label">D5</text>
+  <text x="390" y="380" class="pin-label">D7</text>
 
-  <rect x="430" y="240" width="20" height="10" class="pin"></rect>
-  <text x="440" y="248" class="pin-label">D3</text>
+  <!-- 노드들 -->
+  <circle id="tempSensor" class="node" cx="200" cy="200"/>
+  <text x="200" y="200" class="label">🌡️ 온도 센서</text>
 
-  <rect x="430" y="280" width="20" height="10" class="pin"></rect>
-  <text x="440" y="288" class="pin-label">D5</text>
+  <circle id="heater" class="node heater" cx="800" cy="200"/>
+  <text x="800" y="200" class="label">🔥 히터</text>
 
-  <rect x="430" y="320" width="20" height="10" class="pin"></rect>
-  <text x="440" y="328" class="pin-label">D7</text>
+  <circle id="lightSensor" class="node" cx="200" cy="300"/>
+  <text x="200" y="300" class="label">☀️ 조도 센서</text>
 
-  <!-- 센서/장치 노드 -->
-  <circle id="tempSensor" class="node" cx="200" cy="200" />
-  <text x="200" y="200" class="label">온도 센서</text>
+  <circle id="ledLight" class="node led" cx="800" cy="300"/>
+  <text x="800" y="300" class="label">💡 LED</text>
 
-  <circle id="heater" class="node" cx="800" cy="200" />
-  <text x="800" y="200" class="label">히터</text>
+  <circle id="o2Sensor" class="node" cx="200" cy="400"/>
+  <text x="200" y="400" class="label">🫧 산소 센서</text>
 
-  <circle id="lightSensor" class="node" cx="200" cy="300" />
-  <text x="200" y="300" class="label">조도 센서</text>
+  <circle id="oxygenator" class="node oxygenator" cx="800" cy="400"/>
+  <text x="800" y="400" class="label">🌬️ 산소기</text>
 
-  <circle id="ledLight" class="node" cx="800" cy="300" />
-  <text x="800" y="300" class="label">LED</text>
+  <circle id="phSensor" class="node" cx="500" cy="500"/>
+  <text x="500" y="500" class="label">💧 pH 센서</text>
 
-  <circle id="o2Sensor" class="node" cx="200" cy="400" />
-  <text x="200" y="400" class="label">산소 센서</text>
-
-  <circle id="oxygenator" class="node" cx="800" cy="400" />
-  <text x="800" y="400" class="label">산소기</text>
-
-  <circle id="phSensor" class="node" cx="500" cy="500" />
-  <text x="500" y="500" class="label">pH 센서</text>
-
-  <circle id="alarm" class="node" cx="500" cy="70" />
-  <text x="500" y="70" class="label">알림</text>
+  <circle id="alarm" class="node alarm" cx="500" cy="70"/>
+  <text x="500" y="70" class="label">🔔 알림</text>
 
   <!-- 연결선 -->
-  <line x1="220" y1="200" x2="430" y2="205" />
-  <line x1="580" y1="205" x2="780" y2="200" />
+  <line x1="240" y1="200" x2="400" y2="200"/>
+  <line x1="600" y1="200" x2="760" y2="200"/>
 
-  <line x1="220" y1="300" x2="430" y2="245" />
-  <line x1="580" y1="245" x2="780" y2="300" />
+  <line x1="240" y1="300" x2="400" y2="260"/>
+  <line x1="600" y1="260" x2="760" y2="300"/>
 
-  <line x1="220" y1="400" x2="430" y2="285" />
-  <line x1="580" y1="285" x2="780" y2="400" />
+  <line x1="240" y1="400" x2="400" y2="320"/>
+  <line x1="600" y1="320" x2="760" y2="400"/>
 
-  <line x1="500" y1="480" x2="500" y2="450" />
-  <line x1="500" y1="150" x2="500" y2="100" />
+  <line x1="500" y1="480" x2="500" y2="450"/>
+  <line x1="500" y1="150" x2="500" y2="100"/>
 </svg>
 
 <script>
-  // 클릭 시 활성화
-  document.querySelectorAll(".node").forEach(node => {
-    node.addEventListener("click", () => {
+  // 클릭 시 작동 토글
+  document.querySelectorAll(".node").forEach(node=>{
+    node.addEventListener("click", ()=>{
       node.classList.toggle("active");
     });
   });
