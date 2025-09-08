@@ -16,7 +16,6 @@
   }
   svg { width: 100%; height: 100%; }
 
-  /* 아두이노 보드 */
   .board {
     fill: #1e2a40;
     stroke: #4fc3f7;
@@ -27,14 +26,11 @@
 
   .pin-label { font-size: 11px; fill: #7fcfff; }
 
-  /* 노드 */
   .node circle {
     fill: #111a2b;
     stroke: #4fc3f7;
     stroke-width: 3;
-    r: 50;
-    cursor: pointer;
-    transition: 0.3s;
+    r: 55;
     filter: drop-shadow(0 0 8px #4fc3f7);
   }
 
@@ -52,97 +48,91 @@
     filter: drop-shadow(0 0 6px #4fc3f7);
   }
 
-  /* 애니메이션 */
-  .heater.active circle { fill: #ff4d4d; animation: glow 1s infinite alternate; }
-  .led.active circle { fill: #ffd54f; animation: blink 1s infinite alternate; }
-  .oxygenator.active circle { fill: #4fc3f7; animation: bubble 1.2s infinite; }
-  .alarm.active circle { fill: #ffeb3b; animation: ring 0.5s infinite alternate; }
+  /* 동작 애니메이션 */
+  .heater.active rect { fill: #ff5252; }
+  .led.active rect { fill: #ffeb3b; }
+  .oxygenator.active circle { animation: bubble 1.2s infinite; }
+  .alarm.active path { fill: #ffeb3b; }
 
-  @keyframes glow { from{filter:drop-shadow(0 0 6px red);} to{filter:drop-shadow(0 0 25px red);} }
-  @keyframes blink { from{opacity:0.5;} to{opacity:1;} }
-  @keyframes bubble { from{r:50;} to{r:54;} }
-  @keyframes ring { from{transform:rotate(-5deg);} to{transform:rotate(5deg);} }
+  @keyframes bubble { 0%{r:5;} 100%{r:9;} }
 </style>
 </head>
 <body>
 <svg viewBox="0 0 1000 600">
-  <!-- 아두이노 보드 -->
+  <!-- Arduino UNO -->
   <rect x="400" y="150" width="200" height="300" class="board"/>
   <text x="500" y="170" fill="white" font-size="16" text-anchor="middle">Arduino UNO</text>
-
-  <!-- 핀 라벨 -->
   <text x="390" y="200" class="pin-label">A0</text>
   <text x="390" y="260" class="pin-label">D3</text>
   <text x="390" y="320" class="pin-label">D5</text>
   <text x="390" y="380" class="pin-label">D7</text>
 
-  <!-- 아이콘 있는 노드 -->
+  <!-- 온도 센서 (DS18B20 프로브) -->
   <g id="tempSensor" class="node" transform="translate(200,200)">
     <circle/>
-    <!-- thermometer icon -->
-    <path d="M0,-20 a10,10 0 0 1 0,40 a10,10 0 0 1 0,-40 v-20 a10,10 0 0 1 0,-20 a10,10 0 0 1 0,20z" 
-          fill="#4fc3f7"/>
+    <rect x="-6" y="-30" width="12" height="40" rx="3" fill="#555"/>
+    <rect x="-6" y="10" width="12" height="10" fill="#333"/>
+    <line x1="0" y1="20" x2="0" y2="35" stroke="#444" stroke-width="3"/>
     <text y="70" class="label">온도 센서</text>
   </g>
 
+  <!-- 히터 (수족관 히터 모양) -->
   <g id="heater" class="node heater" transform="translate(800,200)">
     <circle/>
-    <!-- flame icon -->
-    <path d="M0,-25 C15,-10 10,0 15,10 C20,25 -20,25 -15,10 C-10,0 -15,-10 0,-25Z" fill="#ff7043"/>
+    <rect x="-10" y="-25" width="20" height="50" rx="6" fill="#333" stroke="#ff7043" stroke-width="3"/>
+    <line x1="0" y1="-20" x2="0" y2="20" stroke="#ff7043" stroke-width="2" stroke-dasharray="4"/>
     <text y="70" class="label">히터</text>
   </g>
 
+  <!-- 조도 센서 (LDR 모듈 느낌) -->
   <g id="lightSensor" class="node" transform="translate(200,300)">
     <circle/>
-    <!-- sun icon -->
-    <circle r="15" fill="#ffd54f"/>
-    <g stroke="#ffd54f" stroke-width="3">
-      <line x1="0" y1="-25" x2="0" y2="-40"/>
-      <line x1="0" y1="25" x2="0" y2="40"/>
-      <line x1="-25" y1="0" x2="-40" y2="0"/>
-      <line x1="25" y1="0" x2="40" y2="0"/>
-    </g>
+    <rect x="-20" y="-20" width="40" height="40" rx="4" fill="#1976d2"/>
+    <circle r="12" fill="#fdd835"/>
+    <line x1="-12" y1="-12" x2="12" y2="12" stroke="#333" stroke-width="2"/>
+    <line x1="-12" y1="12" x2="12" y2="-12" stroke="#333" stroke-width="2"/>
     <text y="70" class="label">조도 센서</text>
   </g>
 
+  <!-- LED 모듈 -->
   <g id="ledLight" class="node led" transform="translate(800,300)">
     <circle/>
-    <!-- LED bulb icon -->
-    <circle r="14" fill="#fff176" stroke="#fbc02d" stroke-width="3"/>
-    <rect x="-10" y="15" width="20" height="12" rx="3" fill="#fbc02d"/>
+    <rect x="-20" y="-20" width="40" height="40" rx="4" fill="#555"/>
+    <circle r="10" fill="#ffeb3b" stroke="#fbc02d" stroke-width="3"/>
     <text y="70" class="label">LED</text>
   </g>
 
+  <!-- 산소 센서 (DO probe) -->
   <g id="o2Sensor" class="node" transform="translate(200,400)">
     <circle/>
-    <!-- O2 molecule icon -->
-    <circle cx="-15" r="12" fill="#81d4fa"/>
-    <circle cx="15" r="12" fill="#4fc3f7"/>
+    <rect x="-8" y="-25" width="16" height="40" rx="4" fill="#90caf9"/>
+    <rect x="-8" y="15" width="16" height="10" fill="#0d47a1"/>
     <text y="70" class="label">산소 센서</text>
   </g>
 
+  <!-- 산소기 (에어펌프 + 기포) -->
   <g id="oxygenator" class="node oxygenator" transform="translate(800,400)">
     <circle/>
-    <!-- bubbles icon -->
-    <circle cx="-10" cy="-10" r="6" fill="#4fc3f7"/>
-    <circle cx="10" cy="5" r="8" fill="#81d4fa"/>
-    <circle cx="0" cy="20" r="5" fill="#29b6f6"/>
+    <rect x="-15" y="-15" width="30" height="30" rx="6" fill="#29b6f6"/>
+    <circle cx="0" cy="-25" r="5" fill="#4fc3f7"/>
+    <circle cx="10" cy="-35" r="7" fill="#81d4fa"/>
+    <circle cx="-12" cy="-40" r="4" fill="#4fc3f7"/>
     <text y="70" class="label">산소기</text>
   </g>
 
+  <!-- pH 센서 (전극 모양) -->
   <g id="phSensor" class="node" transform="translate(500,500)">
     <circle/>
-    <!-- pH test tube icon -->
-    <rect x="-10" y="-25" width="20" height="40" rx="5" fill="#64b5f6"/>
-    <rect x="-10" y="15" width="20" height="15" rx="3" fill="#2196f3"/>
+    <rect x="-6" y="-25" width="12" height="40" rx="3" fill="#64b5f6"/>
+    <rect x="-6" y="15" width="12" height="12" fill="#0d47a1"/>
     <text y="70" class="label">pH 센서</text>
   </g>
 
+  <!-- 알람 (부저) -->
   <g id="alarm" class="node alarm" transform="translate(500,70)">
     <circle/>
-    <!-- bell icon -->
-    <path d="M-15,0 a15,15 0 0 0 30,0 v-20 a15,15 0 0 0 -30,0z" fill="#ffeb3b"/>
-    <circle cy="15" r="5" fill="#fdd835"/>
+    <circle r="18" fill="#333" stroke="#fff176" stroke-width="4"/>
+    <rect x="-5" y="18" width="10" height="6" fill="#555"/>
     <text y="70" class="label">알림</text>
   </g>
 
@@ -161,7 +151,6 @@
 </svg>
 
 <script>
-  // 클릭 시 작동 토글
   document.querySelectorAll(".node").forEach(node=>{
     node.addEventListener("click", ()=>{
       node.classList.toggle("active");
