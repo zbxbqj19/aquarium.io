@@ -1,52 +1,80 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>아두이노 스마트 아쿠아리움 연결도</title>
-<style>
-  root {
-      --brand: #5aa9ff;
-  }
-  body {
-    margin: 0;
-    font-family: Pretendard, sans-serif;
-    background: #0a0f1c;
-    color: white;
-    overflow-x: hidden;
-  }
-  section {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 40px;
-    border-bottom: 2px solid #1e2a40;
-  }
-  h1 {
-    font-size: 2rem;
-    margin-bottom: 20px;
-    color: #4fc3f7;
-  }
-  img {
-    max-width: 700px;
-    border: 3px solid #4fc3f7;
-    border-radius: 12px;
-    background: #111;
-    box-shadow: 0 0 20px #4fc3f7;
-  }
-  p {
-    margin-top: 15px;
-    font-size: 1rem;
-    color: #cfd8dc;
-  }
-</style>
-    <div class="container nav">
-      <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
-        <a href="#top" class="brand-name">아두이노로 스마트 아쿠아리움을 만들어보자</a>
-      </div>
+  <meta charset="UTF-8">
+  <title>아두이노 스마트 아쿠아리움 연결도</title>
+  <style>
+    :root {
+      --brand-light: #5aa9ff;
+      --brand-dark: #1a2b3a;
+      --gradient-start: #0a0f1c;
+      --gradient-end: #1e2a40;
+    }
+    body {
+      margin: 0;
+      font-family: Pretendard, sans-serif;
+      background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
+      color: white;
+      overflow-x: hidden;
+    }
+    .header {
+      text-align: center;
+      padding: 50px 20px;
+      background: linear-gradient(to right, #4fc3f7, #1a237e);
+      border-bottom: 2px solid #4fc3f7;
+      box-shadow: 0px 5px 30px rgba(0, 0, 0, 0.3);
+    }
+    .header h1 {
+      font-size: 3rem;
+      margin: 0;
+      color: #ffffff;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    .header p {
+      font-size: 1.2rem;
+      color: #dbe4ea;
+      margin-top: 10px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    .brand-name {
+      color: #4fc3f7;
+      font-size: 2.5rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+    section {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      border-bottom: 2px solid #1e2a40;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #4fc3f7;
+    }
+    img {
+      max-width: 700px;
+      border: 3px solid #4fc3f7;
+      border-radius: 12px;
+      background: #111;
+      box-shadow: 0 0 20px #4fc3f7;
+    }
+    p {
+      margin-top: 15px;
+      font-size: 1rem;
+      color: #cfd8dc;
+    }
+  </style>
 </head>
+<body>
+  <header class="header">
+    <h1>아두이노로 스마트 아쿠아리움을 만들어보자</h1>
+    <p>스마트하게 관리되는 수족관, 이제 나만의 아쿠아리움을 만들어보세요.</p>
+  </header>
 <body>
   <div style="text-align: center;">
     <img src="아두이노.png" alt="아두이노">
